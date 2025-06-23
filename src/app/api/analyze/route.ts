@@ -161,30 +161,59 @@ function analyzeSentiment(text: string): SentimentResult {
     }
   }
 
-  // Determine sentiment
+  // Determine sentiment with neutral preference
   let sentiment: 'Positive' | 'Negative' | 'Neutral'
   let explanation: string
   let confidence: number
 
-  const totalSentimentWords = positiveCount + negativeCount
+  const totalSentimentWords = positiveCount + negativeCount + neutralCount
 
   if (totalSentimentWords === 0) {
     sentiment = 'Neutral'
     explanation = 'No clear sentiment indicators found in the review.'
-    confidence = 1.0 // 100% confidence for neutral when no sentiment words found
-  } else if (positiveCount > negativeCount) {
-    sentiment = 'Positive'
-    confidence = positiveCount / totalSentimentWords // Majority ratio
-    explanation = `The review contains ${positiveCount} positive words and ${negativeCount} negative words, indicating an overall positive sentiment.`
-  } else if (negativeCount > positiveCount) {
-    sentiment = 'Negative'
-    confidence = negativeCount / totalSentimentWords // Majority ratio
-    explanation = `The review contains ${negativeCount} negative words and ${positiveCount} positive words, indicating an overall negative sentiment.`
+    confidence = 0
   } else {
-    sentiment = 'Neutral'
-    confidence = 1.0 // 100% confidence for neutral when equal counts
-    explanation = `The review contains an equal number of positive (${positiveCount}) and negative (${negativeCount}) words, resulting in a neutral sentiment.`
+    // Find the majority word type with neutral preference
+    const maxCount = Math.max(positiveCount, negativeCount, neutralCount)
+
+    // If neutral has any presence and ties with others, neutral wins
+    if (
+      neutralCount > 0 &&
+      (neutralCount === maxCount ||
+        (neutralCount === positiveCount && positiveCount > negativeCount) ||
+        (neutralCount === negativeCount && negativeCount > positiveCount) ||
+        (neutralCount === positiveCount && neutralCount === negativeCount))
+    ) {
+      sentiment = 'Neutral'
+      confidence = (neutralCount / totalSentimentWords) * 100
+      explanation = `The review contains ${neutralCount} neutral words, ${positiveCount} positive words, and ${negativeCount} negative words. Neutral sentiment takes precedence.`
+    }
+    // If positive and negative are equal (and no neutral or neutral is less), confidence is 100%
+    else if (positiveCount === negativeCount && positiveCount > neutralCount) {
+      sentiment = 'Neutral'
+      confidence = 100
+      explanation = `The review contains an equal number of positive (${positiveCount}) and negative (${negativeCount}) words, resulting in a neutral sentiment with maximum confidence.`
+    }
+    // Otherwise, determine by majority
+    else if (positiveCount > negativeCount && positiveCount > neutralCount) {
+      sentiment = 'Positive'
+      confidence = (positiveCount / totalSentimentWords) * 100
+      explanation = `The review contains ${positiveCount} positive words, ${negativeCount} negative words, and ${neutralCount} neutral words, indicating an overall positive sentiment.`
+    } else if (negativeCount > positiveCount && negativeCount > neutralCount) {
+      sentiment = 'Negative'
+      confidence = (negativeCount / totalSentimentWords) * 100
+      explanation = `The review contains ${negativeCount} negative words, ${positiveCount} positive words, and ${neutralCount} neutral words, indicating an overall negative sentiment.`
+    } else {
+      // Fallback to neutral if no clear majority
+      sentiment = 'Neutral'
+      confidence =
+        (Math.max(positiveCount, negativeCount, neutralCount) / totalSentimentWords) * 100
+      explanation = `No clear sentiment majority found. The review contains ${positiveCount} positive, ${negativeCount} negative, and ${neutralCount} neutral words.`
+    }
   }
+
+  // Round confidence to 1 decimal place
+  confidence = Math.round(confidence * 10) / 10
 
   return {
     sentiment,

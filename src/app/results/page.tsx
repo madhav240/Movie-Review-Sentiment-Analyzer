@@ -118,7 +118,7 @@ export default function ResultsPage() {
                 <span className="text-4xl">{getSentimentIcon(result.sentiment)}</span>
                 <div className="text-center">
                   <h3 className="text-3xl font-bold">{result.sentiment}</h3>
-                  <p className="text-lg">Confidence: {(result.confidence * 100).toFixed(1)}%</p>
+                  <p className="text-lg">Confidence: {result.confidence.toFixed(1)}%</p>
                 </div>
               </div>
               <p className="text-center text-lg">{result.explanation}</p>
