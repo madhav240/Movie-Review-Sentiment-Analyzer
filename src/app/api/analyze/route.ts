@@ -37,6 +37,8 @@ const positiveWords = [
   'captivating',
   'engaging',
   'compelling',
+  'cool',
+  'stylish',
 ]
 
 const negativeWords = [
