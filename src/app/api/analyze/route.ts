@@ -171,20 +171,18 @@ function analyzeSentiment(text: string): SentimentResult {
   if (totalSentimentWords === 0) {
     sentiment = 'Neutral'
     explanation = 'No clear sentiment indicators found in the review.'
-    confidence = 0.5
+    confidence = 1.0 // 100% confidence for neutral when no sentiment words found
   } else if (positiveCount > negativeCount) {
     sentiment = 'Positive'
-    const ratio = positiveCount / totalSentimentWords
-    confidence = Math.min(0.95, 0.5 + ratio * 0.5)
+    confidence = positiveCount / totalSentimentWords // Majority ratio
     explanation = `The review contains ${positiveCount} positive words and ${negativeCount} negative words, indicating an overall positive sentiment.`
   } else if (negativeCount > positiveCount) {
     sentiment = 'Negative'
-    const ratio = negativeCount / totalSentimentWords
-    confidence = Math.min(0.95, 0.5 + ratio * 0.5)
+    confidence = negativeCount / totalSentimentWords // Majority ratio
     explanation = `The review contains ${negativeCount} negative words and ${positiveCount} positive words, indicating an overall negative sentiment.`
   } else {
     sentiment = 'Neutral'
-    confidence = 0.6
+    confidence = 1.0 // 100% confidence for neutral when equal counts
     explanation = `The review contains an equal number of positive (${positiveCount}) and negative (${negativeCount}) words, resulting in a neutral sentiment.`
   }
 
